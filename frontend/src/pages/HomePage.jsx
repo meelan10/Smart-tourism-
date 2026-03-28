@@ -575,7 +575,7 @@ export default function HomePage({ navigate }) {
                     placeholder={t("search_placeholder")}
                     value={query}
                     onFocus={() => setShowSuggest(true)}
-                    onBlur={() => setTimeout(() => setShowSuggest(false), 120)}
+                    onBlur={() => setTimeout(() => setShowSuggest(false), 200)}
                     onChange={(e) => setQuery(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && query && navigate("search", { q: query })}
                   />
@@ -603,7 +603,8 @@ export default function HomePage({ navigate }) {
                     {heroSuggestions.map((item) => (
                       <button
                         key={item.id}
-                        onClick={() => navigate("destination-detail", { id: item.id })}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => { setShowSuggest(false); navigate("destination-detail", { id: item.id }); }}
                         style={{
                           width: "100%",
                           textAlign: "left",

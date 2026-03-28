@@ -2,145 +2,65 @@ import { useState } from "react";
 import { useLang } from "../context/LangContext";
 import { BookingModal } from "../components/BookingModal";
 
+
 const TRANSPORT_TYPES = [
   {
-    key: "flights",
-    icon: "fa-plane",
-    color: "#4361ee",
-    gradient: "linear-gradient(135deg,#4361ee,#7c3aed)",
-    title_key: "transport_flights",
-    desc_key: "transport_flights_desc",
-    options: [
-      {
-        name_key: "route_kathmandu_lukla",
-        duration_key: "duration_35_min",
-        price: "$180–220",
-        note_key: "note_gateway_everest",
-      },
-      {
-        name_key: "route_kathmandu_pokhara",
-        duration_key: "duration_25_min",
-        price: "$80–120",
-        note_key: "note_popular_route",
-      },
-      {
-        name_key: "route_kathmandu_bharatpur",
-        duration_key: "duration_20_min",
-        price: "$60–90",
-        note_key: "note_chitwan_access",
-      },
-      {
-        name_key: "route_kathmandu_biratnagar",
-        duration_key: "duration_40_min",
-        price: "$90–130",
-        note_key: "note_eastern_nepal",
-      },
+    key:"flights", icon:"fa-plane", color:"#4361ee", gradient:"linear-gradient(135deg,#4361ee,#7c3aed)",
+    title_key:"transport_flights", desc_key:"transport_flights_desc",
+    options:[
+      { name_key:"route_kathmandu_lukla",       duration_key:"duration_35_min",    price:"$180–220", note_key:"note_gateway_everest",    image:"https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&q=80" },
+      { name_key:"route_kathmandu_pokhara",     duration_key:"duration_25_min",    price:"$80–120",  note_key:"note_popular_route",      image:"https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&q=80" },
+      { name_key:"route_kathmandu_bharatpur",   duration_key:"duration_20_min",    price:"$60–90",   note_key:"note_chitwan_access",     image:"https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&q=80" },
+      { name_key:"route_kathmandu_biratnagar",  duration_key:"duration_40_min",    price:"$90–130",  note_key:"note_eastern_nepal",      image:"https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&q=80" },
+      { name_key:"route_kathmandu_nepalgunj",   duration_key:"duration_55_min",    price:"$100–150", note_key:"note_western_gateway",    image:"https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&q=80" },
+      { name_key:"route_kathmandu_jumla",       duration_key:"duration_1_hr",      price:"$120–180", note_key:"note_rara_access",        image:"https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&q=80" },
+      { name_key:"route_kathmandu_simikot",     duration_key:"duration_1_5_hr",    price:"$150–200", note_key:"note_humla_remote",       image:"https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&q=80" },
+      { name_key:"route_pokhara_jomsom",        duration_key:"duration_20_min",    price:"$70–100",  note_key:"note_mustang_gateway",    image:"https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&q=80" },
     ],
   },
   {
-    key: "buses",
-    icon: "fa-bus",
-    color: "#f59e0b",
-    gradient: "linear-gradient(135deg,#f59e0b,#ef4444)",
-    title_key: "transport_buses",
-    desc_key: "transport_buses_desc",
-    options: [
-      {
-        name_key: "route_kathmandu_pokhara",
-        duration_key: "duration_6_7_hours",
-        price: "$10–20",
-        note_key: "note_scenic_highway",
-      },
-      {
-        name_key: "route_kathmandu_chitwan",
-        duration_key: "duration_4_5_hours",
-        price: "$8–15",
-        note_key: "note_wildlife_gateway",
-      },
-      {
-        name_key: "route_pokhara_lumbini",
-        duration_key: "duration_5_6_hours",
-        price: "$8–14",
-        note_key: "note_buddha_birthplace",
-      },
-      {
-        name_key: "route_kathmandu_bhairahawa",
-        duration_key: "duration_6_7_hours",
-        price: "$10–18",
-        note_key: "note_india_border",
-      },
+    key:"buses", icon:"fa-bus", color:"#f59e0b", gradient:"linear-gradient(135deg,#f59e0b,#ef4444)",
+    title_key:"transport_buses", desc_key:"transport_buses_desc",
+    options:[
+      { name_key:"route_kathmandu_pokhara",     duration_key:"duration_6_7_hours", price:"$10–20",   note_key:"note_scenic_highway",     image:"https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&q=80" },
+      { name_key:"route_kathmandu_chitwan",     duration_key:"duration_4_5_hours", price:"$8–15",    note_key:"note_wildlife_gateway",   image:"https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&q=80" },
+      { name_key:"route_pokhara_lumbini",       duration_key:"duration_5_6_hours", price:"$8–14",    note_key:"note_buddha_birthplace",  image:"https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&q=80" },
+      { name_key:"route_kathmandu_bhairahawa",  duration_key:"duration_6_7_hours", price:"$10–18",   note_key:"note_india_border",       image:"https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&q=80" },
+      { name_key:"route_kathmandu_janakpur",    duration_key:"duration_7_8_hours", price:"$10–16",   note_key:"note_maithili_culture",   image:"https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&q=80" },
+      { name_key:"route_kathmandu_ilam",        duration_key:"duration_10_12_hrs", price:"$12–20",   note_key:"note_tea_gardens",        image:"https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&q=80" },
+      { name_key:"route_pokhara_tansen",        duration_key:"duration_3_4_hours", price:"$6–10",    note_key:"note_newari_hilltop",     image:"https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&q=80" },
+      { name_key:"route_kathmandu_gorkha",      duration_key:"duration_4_5_hours", price:"$7–12",    note_key:"note_prithvi_birthplace", image:"https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&q=80" },
     ],
   },
   {
-    key: "jeeps",
-    icon: "fa-truck-monster",
-    color: "#06d6a0",
-    gradient: "linear-gradient(135deg,#06d6a0,#059669)",
-    title_key: "transport_jeeps",
-    desc_key: "transport_jeeps_desc",
-    options: [
-      {
-        name_key: "route_pokhara_jomsom_mustang",
-        duration_key: "duration_8_10_hours",
-        price: "$25–40",
-        note_key: "note_shared_jeep",
-      },
-      {
-        name_key: "route_besisahar_manang",
-        duration_key: "duration_6_8_hours",
-        price: "$20–35",
-        note_key: "note_annapurna_circuit",
-      },
-      {
-        name_key: "route_kathmandu_syabrubesi",
-        duration_key: "duration_7_8_hours",
-        price: "$20–30",
-        note_key: "note_langtang_access",
-      },
-      {
-        name_key: "route_pokhara_ghandruk",
-        duration_key: "duration_3_4_hours",
-        price: "$15–25",
-        note_key: "note_annapurna_foothills",
-      },
+    key:"jeeps", icon:"fa-truck-monster", color:"#06d6a0", gradient:"linear-gradient(135deg,#06d6a0,#059669)",
+    title_key:"transport_jeeps", desc_key:"transport_jeeps_desc",
+    options:[
+      { name_key:"route_pokhara_jomsom_mustang",  duration_key:"duration_8_10_hours", price:"$25–40",  note_key:"note_shared_jeep",         image:"https://images.unsplash.com/photo-1533591380348-14193f1de18f?w=400&q=80" },
+      { name_key:"route_besisahar_manang",         duration_key:"duration_6_8_hours",  price:"$20–35",  note_key:"note_annapurna_circuit",   image:"https://images.unsplash.com/photo-1533591380348-14193f1de18f?w=400&q=80" },
+      { name_key:"route_kathmandu_syabrubesi",     duration_key:"duration_7_8_hours",  price:"$20–30",  note_key:"note_langtang_access",     image:"https://images.unsplash.com/photo-1533591380348-14193f1de18f?w=400&q=80" },
+      { name_key:"route_pokhara_ghandruk",         duration_key:"duration_3_4_hours",  price:"$15–25",  note_key:"note_annapurna_foothills", image:"https://images.unsplash.com/photo-1533591380348-14193f1de18f?w=400&q=80" },
+      { name_key:"route_kathmandu_bandipur",       duration_key:"duration_4_5_hours",  price:"$15–25",  note_key:"note_medieval_hilltop",    image:"https://images.unsplash.com/photo-1533591380348-14193f1de18f?w=400&q=80" },
+      { name_key:"route_nepalgunj_bardia",         duration_key:"duration_2_3_hours",  price:"$10–18",  note_key:"note_tiger_country",       image:"https://images.unsplash.com/photo-1533591380348-14193f1de18f?w=400&q=80" },
+      { name_key:"route_kathmandu_nagarkot",       duration_key:"duration_1_5_hours",  price:"$8–15",   note_key:"note_sunrise_viewpoint",   image:"https://images.unsplash.com/photo-1533591380348-14193f1de18f?w=400&q=80" },
+      { name_key:"route_kathmandu_dhulikhel",      duration_key:"duration_1_hour",     price:"$6–12",   note_key:"note_valley_viewpoint",    image:"https://images.unsplash.com/photo-1533591380348-14193f1de18f?w=400&q=80" },
     ],
   },
   {
-    key: "trek",
-    icon: "fa-hiking",
-    color: "#e84855",
-    gradient: "linear-gradient(135deg,#e84855,#991b1b)",
-    title_key: "transport_trek",
-    desc_key: "transport_trek_desc",
-    options: [
-      {
-        name_key: "trek_everest_base_camp",
-        duration_key: "duration_12_14_days",
-        price: "$800–1500",
-        note_key: "note_most_iconic",
-      },
-      {
-        name_key: "trek_annapurna_circuit",
-        duration_key: "duration_14_21_days",
-        price: "$600–1200",
-        note_key: "note_classic_route",
-      },
-      {
-        name_key: "trek_langtang_valley",
-        duration_key: "duration_7_10_days",
-        price: "$400–800",
-        note_key: "note_near_kathmandu",
-      },
-      {
-        name_key: "trek_ghorepani_poonhill",
-        duration_key: "duration_4_5_days",
-        price: "$200–400",
-        note_key: "note_best_sunrise_views",
-      },
+    key:"trek", icon:"fa-hiking", color:"#e84855", gradient:"linear-gradient(135deg,#e84855,#991b1b)",
+    title_key:"transport_trek", desc_key:"transport_trek_desc",
+    options:[
+      { name_key:"trek_everest_base_camp",    duration_key:"duration_12_14_days",  price:"$800–1500",  note_key:"note_most_iconic",         image:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=80" },
+      { name_key:"trek_annapurna_circuit",    duration_key:"duration_14_21_days",  price:"$600–1200",  note_key:"note_classic_route",       image:"https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&q=80" },
+      { name_key:"trek_langtang_valley",      duration_key:"duration_7_10_days",   price:"$400–800",   note_key:"note_near_kathmandu",      image:"https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&q=80" },
+      { name_key:"trek_ghorepani_poonhill",   duration_key:"duration_4_5_days",    price:"$200–400",   note_key:"note_best_sunrise_views",  image:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=80" },
+      { name_key:"trek_manaslu_circuit",      duration_key:"duration_14_18_days",  price:"$900–1600",  note_key:"note_restricted_area",     image:"https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&q=80" },
+      { name_key:"trek_upper_mustang",        duration_key:"duration_10_14_days",  price:"$1500–2500", note_key:"note_forbidden_kingdom",   image:"https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&q=80" },
+      { name_key:"trek_rara_lake",            duration_key:"duration_8_12_days",   price:"$600–1000",  note_key:"note_remote_paradise",     image:"https://images.unsplash.com/photo-1501854140801-50d01698950b?w=400&q=80" },
+      { name_key:"trek_gosaikunda",           duration_key:"duration_4_6_days",    price:"$250–450",   note_key:"note_sacred_alpine_lake",  image:"https://images.unsplash.com/photo-1571401835393-8c5f35328320?w=400&q=80" },
     ],
   },
 ];
-
 const POPULAR_ROUTES = [
   {
     from_key: "city_kathmandu",
