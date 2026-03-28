@@ -210,7 +210,13 @@ export default function ProfilePage({ navigate, user, setUser }) {
       {payModal && <PaymentModal booking={payModal} onClose={() => setPayModal(null)}
         onSuccess={p => { setPayments(prev => [p, ...prev]); setPayModal(null); showToast("Payment successful! 🎉"); }} />}
       {refundModal && <RefundModal payment={refundModal} onClose={() => setRefundModal(null)}
-        onSuccess={r => { setRefunds(prev => [r, ...prev]); setRefundModal(null); showToast("Refund requested ✓"); }} />}
+        onSuccess={r => {
+          setRefunds(prev => [r, ...prev]);
+          // Mark payment as refunded in local state
+          setPayments(prev => prev.map(p => p.id === r.payment ? { ...p, status:"refunded" } : p));
+          setRefundModal(null);
+          showToast("Refund requested ✓");
+        }} />}
 
       {/* ── HERO HEADER ── */}
       <div className="profile-header">
@@ -326,9 +332,9 @@ function OverviewTab({ reviews, favs, history, payments, navigate, setTab }) {
         {recent.length === 0 ? <EmptyState icon="🗺️" msg="No visits tracked yet" /> :
           recent.map((h,i) => (
             <div key={i} style={{ display:"flex", gap:12, alignItems:"center", padding:"10px 0", borderBottom:"1px dashed rgba(0,0,0,0.06)" }}>
-              <span style={{ fontSize:"1.4rem" }}>{h.content_type==="hotel"?"🏨":h.content_type==="transport"?"🚌":"📍"}</span>
+              <span style={{ fontSize:"1.4rem" }}>{h.content_type==="hotel"?"🏨":h.content_type==="guide"?"👤":h.content_type==="transport"?"🚌":"📍"}</span>
               <div>
-                <div style={{ fontWeight:700, fontSize:"0.85rem", color:"var(--text)" }}>{h.item_name}</div>
+                <div style={{ fontWeight:700, fontSize:"0.85rem", color:"var(--text)" }}>{h.item_name || h.destination?.name || h.hotel?.name || h.guide?.name || "—"}</div>
                 <div style={{ fontSize:"0.75rem", color:"var(--text3)", fontWeight:600 }}>{h.content_type} · {new Date(h.visited_at).toLocaleDateString()}</div>
               </div>
             </div>
@@ -448,7 +454,7 @@ function FavouritesTab({ favs, onRemove, navigate }) {
                   </button>
                 </div>
                 <button className="clay-btn clay-btn-outline clay-btn-sm clay-btn-full" style={{ marginTop:8 }}
-                  onClick={() => navigate(pg, { id: item?.id, slug: item?.slug })}>
+                  onClick={() => navigate(pg, { id: item?.id })}>
                   View Details
                 </button>
               </div>
@@ -464,6 +470,14 @@ function VisitedTab({ history, navigate }) {
   const [filter, setFilter] = useState("all");
   const filtered = filter === "all" ? history : history.filter(h => h.content_type === filter);
   const typeIcon = { destination:"📍", hotel:"🏨", transport:"🚌", guide:"👤" };
+
+  const goToItem = (h) => {
+    if (h.content_type === "hotel" && h.hotel?.id) navigate("hotel-detail", { id: h.hotel.id });
+    else if (h.content_type === "destination" && h.destination?.id) navigate("destination-detail", { id: h.destination.id });
+    else if (h.content_type === "guide" && h.guide?.id) navigate("guide-detail", { id: h.guide.id });
+    else if (h.content_type === "transport") navigate("transport");
+  };
+
   if (history.length === 0) return (
     <div className="clay-card" style={{ padding:60, textAlign:"center" }}>
       <EmptyState icon="🗺️" msg="No visit history yet. Start exploring!" cta="Explore" onCta={() => navigate("destinations")} />
@@ -475,20 +489,27 @@ function VisitedTab({ history, navigate }) {
         {["all","destination","hotel","guide","transport"].map(f => (
           <button key={f} className={`filter-chip${filter===f?" active":""}`} onClick={() => setFilter(f)}>
             {typeIcon[f]||"🌐"} {f==="all"?"All":f.charAt(0).toUpperCase()+f.slice(1)}s
+            {" "}({f==="all" ? history.length : history.filter(h=>h.content_type===f).length})
           </button>
         ))}
       </div>
       <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
         {filtered.map((h,i) => (
-          <div key={i} className="clay-card visit-row" style={{ animationDelay:`${i*0.04}s` }}>
+          <div key={i} className="clay-card visit-row" style={{ animationDelay:`${i*0.04}s`, cursor: h.content_type!=="transport"?"pointer":"default" }}
+            onClick={() => goToItem(h)}>
             <div className="visit-icon-box">{typeIcon[h.content_type]||"🌐"}</div>
             <div style={{ flex:1 }}>
-              <div style={{ fontWeight:800, color:"var(--text)", marginBottom:2 }}>{h.item_name || "—"}</div>
-              <div style={{ fontSize:"0.78rem", color:"var(--text3)", fontWeight:600 }}>
-                <Badge color={h.content_type==="hotel"?"blue":h.content_type==="transport"?"green":"red"}>{h.content_type}</Badge>
-                <span style={{ marginLeft:8 }}>{new Date(h.visited_at).toLocaleString()}</span>
+              <div style={{ fontWeight:800, color:"var(--text)", marginBottom:2 }}>
+                {h.item_name || h.destination?.name || h.hotel?.name || h.guide?.name || "—"}
+              </div>
+              <div style={{ fontSize:"0.78rem", color:"var(--text3)", fontWeight:600, display:"flex", gap:8, alignItems:"center" }}>
+                <Badge color={h.content_type==="hotel"?"blue":h.content_type==="guide"?"purple":h.content_type==="transport"?"green":"red"}>{h.content_type}</Badge>
+                <span>{new Date(h.visited_at).toLocaleString()}</span>
               </div>
             </div>
+            {h.content_type !== "transport" && (
+              <i className="fas fa-chevron-right" style={{ color:"var(--text4)", fontSize:"0.8rem" }}></i>
+            )}
           </div>
         ))}
       </div>
@@ -515,7 +536,7 @@ function PaymentsTab({ payments, refunds, onRefund, onNewPayment }) {
         payments.length === 0 ? <div className="clay-card" style={{ padding:60, textAlign:"center" }}><EmptyState icon="💳" msg="No payments yet." /></div> :
         <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
           {payments.map(p => {
-            const canRefund = p.status === "completed" && !refunds.find(r => r.payment === p.id);
+            const canRefund = p.status === "completed" && !refunds.find(r => r.payment === p.id || r.payment?.id === p.id);
             return (
               <div key={p.id} className="clay-card" style={{ padding:20 }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12 }}>
@@ -613,7 +634,6 @@ function TicketsTab({ payments }) {
   const booked = payments.filter(p => p.booking && ["book_hotel","book_guide","book_transport"].includes(p.booking?.action));
   const methodIcon = { visa:"fa-cc-visa", mastercard:"fa-cc-mastercard", esewa:"fa-wallet", khalti:"fa-wallet" };
   const actionLabel = { book_hotel:"🏨 Hotel", book_guide:"👤 Guide", book_transport:"🚌 Transport" };
-  const statusColor = { confirmed:"green", pending:"gold", cancelled:"red", refunded:"blue", completed:"green" };
 
   if (booked.length === 0) return (
     <div className="clay-card" style={{ padding:60, textAlign:"center" }}>
@@ -626,10 +646,10 @@ function TicketsTab({ payments }) {
       {booked.map(p => {
         const b = p.booking;
         const extra = b?.extra_data || {};
+        const isRefunded = p.status === "refunded";
         return (
-          <div key={p.id} className="clay-card" style={{ padding:0, overflow:"hidden" }}>
-            {/* Ticket header */}
-            <div style={{ background:"linear-gradient(135deg,#1a0533,#302b63)", padding:"20px 28px", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12 }}>
+          <div key={p.id} className="clay-card" style={{ padding:0, overflow:"hidden", opacity: isRefunded ? 0.7 : 1 }}>
+            <div style={{ background: isRefunded ? "linear-gradient(135deg,#374151,#6b7280)" : "linear-gradient(135deg,#1a0533,#302b63)", padding:"20px 28px", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12 }}>
               <div>
                 <div style={{ color:"rgba(255,255,255,0.6)", fontSize:"0.72rem", fontWeight:800, textTransform:"uppercase", letterSpacing:1, marginBottom:4 }}>
                   {actionLabel[b?.action] || "Booking"} · TXN: {p.transaction_id}
@@ -637,27 +657,27 @@ function TicketsTab({ payments }) {
                 <h5 style={{ color:"#fff", fontWeight:900, margin:0, fontFamily:"'Playfair Display',serif" }}>{b?.item_name || "Booking"}</h5>
               </div>
               <div style={{ textAlign:"right" }}>
-                <div style={{ color:"var(--clay-gold)", fontWeight:900, fontSize:"1.4rem" }}>${p.amount}</div>
+                <div style={{ color: isRefunded ? "#9ca3af" : "var(--clay-gold)", fontWeight:900, fontSize:"1.4rem" }}>${p.amount}</div>
                 <span style={{ fontSize:"0.7rem", fontWeight:800, padding:"3px 10px", borderRadius:99,
-                  background: p.status==="completed"?"rgba(6,214,160,0.2)":"rgba(255,209,102,0.2)",
-                  color: p.status==="completed"?"#06d6a0":"#f59e0b", border:"1px solid currentColor" }}>
-                  {p.status?.toUpperCase()}
+                  background: isRefunded ? "rgba(107,114,128,0.3)" : p.status==="completed" ? "rgba(6,214,160,0.2)" : "rgba(255,209,102,0.2)",
+                  color: isRefunded ? "#9ca3af" : p.status==="completed" ? "#06d6a0" : "#f59e0b",
+                  border:"1px solid currentColor" }}>
+                  {isRefunded ? "REFUNDED" : p.status?.toUpperCase()}
                 </span>
               </div>
             </div>
 
-            {/* Ticket body */}
             <div style={{ padding:"20px 28px", display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))", gap:16 }}>
               {[
                 { label:"Payment Method", value: <><i className={`fab ${methodIcon[p.method]||"fa-credit-card"}`} style={{ marginRight:6 }}></i>{p.method?.toUpperCase()}</> },
                 { label:"Booked On", value: new Date(p.created_at).toLocaleDateString("en-US",{day:"numeric",month:"short",year:"numeric"}) },
-                extra.checkIn && { label:"Check-in", value: extra.checkIn },
-                extra.checkOut && { label:"Check-out", value: extra.checkOut },
-                extra.guests && { label:"Guests", value: extra.guests },
-                extra.rooms && { label:"Rooms", value: extra.rooms },
-                extra.days && { label:"Days", value: extra.days },
+                extra.checkIn  && { label:"Check-in",   value: extra.checkIn },
+                extra.checkOut && { label:"Check-out",  value: extra.checkOut },
+                extra.guests   && { label:"Guests",     value: extra.guests },
+                extra.rooms    && { label:"Rooms",      value: extra.rooms },
+                extra.days     && { label:"Days",       value: extra.days },
                 extra.fullName && { label:"Guest Name", value: extra.fullName },
-                extra.phone && { label:"Phone", value: extra.phone },
+                extra.phone    && { label:"Phone",      value: extra.phone },
               ].filter(Boolean).map((item,i) => (
                 <div key={i}>
                   <div style={{ fontSize:"0.7rem", fontWeight:800, textTransform:"uppercase", letterSpacing:0.5, color:"var(--text3)", marginBottom:3 }}>{item.label}</div>
@@ -666,12 +686,17 @@ function TicketsTab({ payments }) {
               ))}
             </div>
 
-            {/* Ticket footer - dashed divider */}
             <div style={{ borderTop:"2px dashed rgba(0,0,0,0.08)", margin:"0 28px", paddingBottom:16, paddingTop:14, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
               <span style={{ fontSize:"0.75rem", color:"var(--text3)", fontWeight:600 }}>Tour Tech · Booking Confirmation</span>
-              <button onClick={() => window.print()} className="clay-btn clay-btn-outline clay-btn-sm">
-                <i className="fas fa-print"></i> Print Ticket
-              </button>
+              {isRefunded ? (
+                <span style={{ fontSize:"0.78rem", color:"#9ca3af", fontWeight:700, padding:"6px 14px", borderRadius:99, background:"rgba(107,114,128,0.1)", border:"1px solid rgba(107,114,128,0.3)" }}>
+                  ↩️ Refunded — ticket void
+                </span>
+              ) : (
+                <button onClick={() => window.print()} className="clay-btn clay-btn-outline clay-btn-sm">
+                  <i className="fas fa-print"></i> Print Ticket
+                </button>
+              )}
             </div>
           </div>
         );

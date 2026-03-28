@@ -223,7 +223,7 @@ def favorites(request):
 @permission_classes([IsAuthenticated])
 def visit_history(request):
     if request.method == "GET":
-        history = VisitHistory.objects.filter(user=request.user).select_related("destination", "hotel")[:50]
+        history = VisitHistory.objects.filter(user=request.user).select_related("destination", "hotel", "guide")[:100]
         return Response(VisitHistorySerializer(history, many=True).data)
 
     s = VisitHistorySerializer(data=request.data)

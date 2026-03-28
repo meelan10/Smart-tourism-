@@ -143,7 +143,7 @@ export function DestinationDetailPage({ navigate, pageParams, user }) {
       return;
     }
     try {
-      await api.toggleFavorite({ content_type: "destination", destination: dest.id });
+      await api.toggleFavorite({ content_type: "destination", id: dest.id });
     } catch {}
     setSaved((s) => !s);
   };
