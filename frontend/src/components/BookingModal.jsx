@@ -1,6 +1,7 @@
 // Shared BookingModal + PaymentFlow used by Hotel, Guide, Transport
 import { useState } from "react";
 import { api } from "../api";
+import { useLang } from "../context/LangContext";
 
 const PAY_METHODS = [
   { id:"visa",       label:"Visa",       icon:"fa-cc-visa",       grad:"linear-gradient(135deg,#1a1f71,#2563eb)", tag:"foreign" },
@@ -9,7 +10,33 @@ const PAY_METHODS = [
   { id:"khalti",     label:"Khalti",     icon:"fa-wallet",        grad:"linear-gradient(135deg,#5c2d91,#9b59b6)", tag:"domestic" },
 ];
 
+// Currency config per language: { code, symbol, rate (from USD) }
+const LANG_CURRENCY = {
+  en: { code:"USD", symbol:"$",   rate:1 },
+  ne: { code:"NPR", symbol:"रू",  rate:133.5 },
+  hi: { code:"INR", symbol:"₹",   rate:83.5 },
+  zh: { code:"CNY", symbol:"¥",   rate:7.24 },
+  de: { code:"EUR", symbol:"€",   rate:0.92 },
+  fr: { code:"EUR", symbol:"€",   rate:0.92 },
+  ja: { code:"JPY", symbol:"¥",   rate:149.5 },
+  ko: { code:"KRW", symbol:"₩",   rate:1325 },
+  ar: { code:"USD", symbol:"$",   rate:1 },
+};
+
+function useCurrency() {
+  const { lang } = useLang();
+  return LANG_CURRENCY[lang] || LANG_CURRENCY.en;
+}
+
+function fmt(usdAmount, curr) {
+  const converted = usdAmount * curr.rate;
+  // For large currencies (JPY, KRW, NPR) show no decimals
+  const decimals = curr.rate > 50 ? 0 : 2;
+  return `${curr.symbol}${converted.toFixed(decimals)}`;
+}
+
 export function BookingModal({ config, user, onClose, onSuccess }) {
+  const curr = useCurrency();
   // config: { type:"hotel"|"guide"|"transport", item, action:"book_hotel"|"book_guide"|"book_transport" }
   const [step, setStep] = useState(1); // 1=details, 2=payment
   const [form, setForm] = useState({
@@ -54,7 +81,7 @@ export function BookingModal({ config, user, onClose, onSuccess }) {
       const payment = await api.createPayment({
         method,
         amount: Math.round(amount * 100) / 100,
-        currency: "USD",
+        currency: curr.code,
         item_name: item.name || item.name_key || "Booking",
         item_id: item.id || null,
         action,
@@ -111,7 +138,7 @@ export function BookingModal({ config, user, onClose, onSuccess }) {
         </h4>
         <p style={{ color:"var(--text3)",fontWeight:600,marginBottom:20,fontSize:"0.9rem" }}>
           {item.name || item.name_key}
-          {amount > 0 && <strong style={{ color:"var(--clay-red)",marginLeft:8 }}>${amount.toFixed(2)}</strong>}
+          {amount > 0 && <strong style={{ color:"var(--clay-red)",marginLeft:8 }}>{fmt(amount,curr)}</strong>}
         </p>
 
         {err && <div style={{ padding:"10px 14px",background:"rgba(232,72,85,0.1)",border:"2px solid rgba(232,72,85,0.25)",borderRadius:12,color:"var(--clay-red)",fontWeight:700,fontSize:"0.85rem",marginBottom:14 }}>⚠️ {err}</div>}
@@ -154,9 +181,9 @@ export function BookingModal({ config, user, onClose, onSuccess }) {
               {amount > 0 && (
                 <div style={{ padding:14,background:"rgba(67,97,238,0.06)",border:"var(--clay-border)",borderRadius:14,marginBottom:14 }}>
                   <div style={{ fontWeight:800,color:"var(--text)",marginBottom:6 }}>Booking Summary</div>
-                  {type==="hotel" && <div style={{ color:"var(--text2)",fontSize:"0.88rem",fontWeight:600 }}>Nights: {nights} × ${item.price_per_night} × {form.rooms} room(s)</div>}
-                  {type==="guide" && <div style={{ color:"var(--text2)",fontSize:"0.88rem",fontWeight:600 }}>Days: {form.days} × ${item.price_per_day}/day</div>}
-                  <div style={{ color:"var(--clay-red)",fontSize:"1.05rem",fontWeight:900,marginTop:6 }}>Total: ${amount.toFixed(2)}</div>
+                  {type==="hotel" && <div style={{ color:"var(--text2)",fontSize:"0.88rem",fontWeight:600 }}>Nights: {nights} × {fmt(item.price_per_night,curr)} × {form.rooms} room(s)</div>}
+                  {type==="guide" && <div style={{ color:"var(--text2)",fontSize:"0.88rem",fontWeight:600 }}>Days: {form.days} × {fmt(item.price_per_day,curr)}/day</div>}
+                  <div style={{ color:"var(--clay-red)",fontSize:"1.05rem",fontWeight:900,marginTop:6 }}>Total: {fmt(amount,curr)}</div>
                 </div>
               )}
             </>
@@ -195,7 +222,7 @@ export function BookingModal({ config, user, onClose, onSuccess }) {
             {step===2 && <button type="button" className="clay-btn clay-btn-outline" onClick={()=>setStep(1)} style={{ flex:1 }}>← Back</button>}
             <button type="submit" className="clay-btn clay-btn-red" style={{ flex:2,justifyContent:"center" }} disabled={loading}>
               <i className={`fas ${loading?"fa-spinner fa-spin":step===1?"fa-arrow-right":"fa-lock"}`}></i>
-              {loading?"Processing...":step===1?"Continue to Payment":`Pay $${amount.toFixed(2)}`}
+              {loading?"Processing...":step===1?"Continue to Payment":`Pay ${fmt(amount,curr)}`}
             </button>
           </div>
         </form>
