@@ -4,7 +4,7 @@ import { DestinationCard, HotelCard, GuideCard } from "../components/Cards";
 import { api, saveToken, clearToken } from "../api";
 import { useLang } from "../context/LangContext";
 
-/* ═══ SEARCH ═══ */
+
 export function SearchPage({ navigate, pageParams }) {
   const { t } = useLang();
   const [query, setQuery] = useState(pageParams?.q || "");
@@ -247,7 +247,7 @@ export function SearchPage({ navigate, pageParams }) {
   );
 }
 
-/* ═══ SAFETY ═══ */
+
 const generalTips = [
   { icon: "fa-mountain", title_key: "safety_tip_altitude", content_key: "safety_tip_altitude_desc" },
   { icon: "fa-id-card", title_key: "safety_tip_documents", content_key: "safety_tip_documents_desc" },
